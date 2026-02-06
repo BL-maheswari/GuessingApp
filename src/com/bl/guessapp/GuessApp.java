@@ -1,91 +1,64 @@
 package com.bl.guessapp;
 
 import java.util.Scanner;
-
-/**
- * MAIN CLASS
- *
- * Use Case 5: Game Result Storage
- *
- * This class coordinates the complete game flow
- * and persists the final result after completion.
- *
- * Responsibilities:
- * - Initialize game configuration
- * - Accept and validate user guesses
- * - Generate hints when applicable
- * - Store game result at the end
- *
- * @author Developer
- * @version 5.0
- */
 public class GuessApp {
 
-    public static void main(String[] args) throws InvalidInputException{
+    public static void main(String[] args) throws InvalidInputException {
 
         Scanner scanner = new Scanner(System.in);
+        boolean restart;
 
         System.out.println("===========================");
         System.out.println("Welcome to the Guessing App");
         System.out.println("===========================");
 
-        /*
-         * Player name is captured once
-         * and stored along with game results.
-         */
-        System.out.println("Enter Player Name: ");
-        String player = scanner.nextLine();
+        do {
+            System.out.println("enter player name:");
+            String player = scanner.nextLine();
 
-        GameConfig gameConfig = new GameConfig();
-        gameConfig.showRules();
+            GameConfig config = new GameConfig();
+            config.showRules();
 
-        int attempts = 0;
-        int hintsUsed = 0;
+            int attempts = 0;
+            int hintsUsed = 0;
 
-        /*
-         * Tracks whether the player
-         * successfully guessed the number.
-         */
-        boolean win = false;
+            boolean win = false;
+            while (attempts < config.getMaxAttempts()) {
+                System.out.println("Enter your guess: ");
 
-        /*
-         * Game loop runs until the player
-         * exhausts the maximum attempts.
-         */
+                /*
+                 * User input is validated before
+                 * being used in the game logic.
+                 */
+                int guess = ValidationService.validateInput(scanner.nextLine());
+                attempts++;
 
-        while(attempts<gameConfig.getMaxAttempts()){
-            System.out.println("Enter your guess: ");
+                String result = GuessValidator.validateGuess(guess, gameConfig.getTargetNumber());
 
-            /*
-             * User input is validated before
-             * being used in the game logic.
-             */
-            int guess=ValidationService.validateInput(scanner.nextLine());
-            attempts++;
+                /*
+                 * A hint is generated only after
+                 * an incorrect guess and within
+                 * the allowed hint limit.
+                 */
+                if (!"CORRECT".equals(result) && hintsUsed < gameConfig.getMAxHints()) {
+                    hintsUsed++;
+                    System.out.println(HintService.generateHint(gameConfig.getTargetNumber(), hintsUsed));
+                }
 
-            String result=GuessValidator.validateGuess(guess, gameConfig.getTargetNumber());
+                System.out.println(result);
 
-            /*
-             * A hint is generated only after
-             * an incorrect guess and within
-             * the allowed hint limit.
-             */
-            if(!"CORRECT".equals(result) && hintsUsed < gameConfig.getMAxHints()){
-                hintsUsed++;
-                System.out.println(HintService.generateHint(gameConfig.getTargetNumber(), hintsUsed));
+                /*
+                 * Stop the loop immediately
+                 * if the correct number is guessed.
+                 */
+                if ("CORRECT".equals(result)) {
+                    break;
+                }
             }
 
-            System.out.println(result);
-
-            /*
-             * Stop the loop immediately
-             * if the correct number is guessed.
-             */
-            if ("CORRECT".equals(result)){
-                break;
-            }
+            StorageService.saveResult(player, attempts, win);
+            restart = GameController.restartGame();
         }
-
-        StorageService.saveResult(player, attempts, win);
+        while (restart);
     }
 }
