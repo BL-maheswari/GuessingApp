@@ -1,20 +1,48 @@
 /*
- * GuessingApp-use case 1:Game Initialization
+Coordinates the game flow:
+ * 1. Initialize game
+ * 2. Accept user guesses
+ * 3. Validate guesses
+ * 4. Stop when game ends
  *
- * this class serves as a the application entry point.
- * it initializes the game configuration and displays game rules.
- * No user input or gameplay logic is implemented at this stage.
  * @author Developer
- * @version 1.0
- *
+ * @version 2.0
  */
 package com.bl.guessapp;
 
-public class GuessingApp {
-    public static void main(String[] args) {
-        System.out.println("welcome to the Guessing App");
-        GameConfig gemeConfig=new GameConfig();
-        gemeConfig.showRules();
-    }
+import java.util.Scanner;
 
+public class GuessApp {
+    public static void main(String[] args) {
+
+        System.out.println("Welcome to the Guessing App");
+
+        GameConfig gameConfig = new GameConfig();
+        gameConfig.showRules();
+        Scanner scanner = new Scanner(System.in);
+        int attempts = 0;
+
+        /*
+         * Game loop runs until the player
+         * exhausts the maximum attempts.
+         */
+        while (attempts<gameConfig.getMaxAttempts()){
+
+            System.out.println("Enter your guess: ");
+            int guess = scanner.nextInt();
+            attempts++;
+
+            String result = GuessValidator.validateGuess(guess,gameConfig.getTargetNumber());
+
+            System.out.println(result);
+
+            /*
+             * Stop the loop immediately
+             * if the correct number is guessed.
+             */
+            if ("CORRECT".equals(result)){
+                break;
+            }
+        }
+    }
 }
